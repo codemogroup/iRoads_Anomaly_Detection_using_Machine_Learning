@@ -1,12 +1,5 @@
-
-
-```{r}
-library("rjson")
-file <- "TrainData\\pothole_40kmph.json"
-json_data <- fromJSON(file = file)
-```
-
-
+library("jsonlite")
+json_data <- read_json("TrainData\\bump.json")
 
 vector_acceX <- numeric()
 vector_acceY <- numeric()
@@ -34,6 +27,71 @@ for (item in json_data){
   vector_anomaly <- c(vector_anomaly, item$anomaly)
 }
 
+library(randomForest)
+data_set_bump = data.frame(acceY = vector_acceY_raw, acceX = vector_acceX_raw, acceZ = vector_acceZ_raw, speed = vector_gpsSpeed, anomaly = vector_anomaly)  
+summary(data_set_bump)
+model_Bump <- randomForest(anomaly ~ ., data = data_set_bump, importance = TRUE)
+model_Bump
+```{r}
+
+library(plotly)
+theme_set(theme_classic())
+p <- plot_ly(data_set_bump, x = ~time, y = ~acceY, type = "area")
+p
+```
+
+
+```{r}
+json_data <- read_json("TrainData\\pothole_40kmph.json")
+
+vector_acceX_P <- numeric()
+vector_acceY_P <- numeric()
+vector_acceZ_P <- numeric()
+vector_acceX_raw_P <- numeric()
+vector_acceY_raw_P <- numeric()
+vector_acceZ_raw_P <- numeric()
+vector_time_P <- numeric()
+vector_gpsSpeed_P <- numeric()
+vector_lat_P <- numeric()
+vector_lon_P <- numeric()
+vector_anomaly_P <-character()
+
+for (item in json_data){
+  vector_acceX_P <- c(vector_acceX_P, item$acceX)
+  vector_acceY_P <- c(vector_acceY_P, item$acceY)
+  vector_acceZ_P <- c(vector_acceZ_P, item$acceZ)
+  vector_acceX_raw_P <- c(vector_acceX_raw_P, item$acceX_raw)
+  vector_acceY_raw_P <- c(vector_acceY_raw_P, item$acceY_raw)
+  vector_acceZ_raw_P <- c(vector_acceZ_raw_P, item$acceZ_raw)
+  vector_time_P <- c(vector_time_P, item$time)
+  vector_gpsSpeed_P <- c(vector_gpsSpeed_P, item$gpsSpeed)
+  vector_lat_P <- c(vector_lat_P, item$lat)
+  vector_lon_P <- c(vector_lon_P, item$lon)
+  vector_anomaly_P <- c(vector_anomaly_P, item$anomaly)
+}
+data_set_Pothole = data.frame(acceY = vector_acceY_raw_P,time = vector_time_P )
+theme_set(theme_classic())
+p <- plot_ly(data_set_Pothole, x = ~time, y = ~acceY, type = "area")
+p
+```
+
+
+
+json_data <- read_json("TrainData\\pothole_40kmph.json")
+
+for (item in json_data){
+  vector_acceX <- c(vector_acceX, item$acceX)
+  vector_acceY <- c(vector_acceY, item$acceY)
+  vector_acceZ <- c(vector_acceZ, item$acceZ)
+  vector_acceX_raw <- c(vector_acceX_raw, item$acceX_raw)
+  vector_acceY_raw <- c(vector_acceY_raw, item$acceY_raw)
+  vector_acceZ_raw <- c(vector_acceZ_raw, item$acceZ_raw)
+  vector_time <- c(vector_time, item$time)
+  vector_gpsSpeed <- c(vector_gpsSpeed, item$gpsSpeed)
+  vector_lat <- c(vector_lat, item$lat)
+  vector_lon <- c(vector_lon, item$lon)
+  vector_anomaly <- c(vector_anomaly, item$anomaly)
+}
 data_set = data.frame(acceY = vector_acceY_raw, acceX = vector_acceX_raw, acceZ = vector_acceZ_raw, speed = vector_gpsSpeed, anomaly = vector_anomaly)
 
 head(data_set)
@@ -41,9 +99,8 @@ summary(data_set)
 
 nrow(data_set)
 
-###############################################################
 
-json_data <- fromJSON(file = "TestData\\HTC-Tida-Walpola-Matara.json")
+json_data <- read_json("TestData\\HTC-Tida-Walpola-Matara.json")
 vector_acceX <- numeric()
 vector_acceY <- numeric()
 vector_acceZ <- numeric()
@@ -72,6 +129,15 @@ for (item in json_data){
 
 test_data_set = data.frame(acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed)
 
+```{r}
+#library(plotly)
+theme_set(theme_classic())
+test_data_set_graph = data.frame(acceY = vector_acceY, time = vector_time )
+p <- plot_ly(test_data_set_graph, x = ~time, y = ~acceY, type = "area")
+p
+```
+
+
 nrow(test_data_set)
 head(test_data_set)
 summary(test_data_set)
@@ -85,14 +151,27 @@ model1 <- randomForest(anomaly ~ ., data = data_set, importance = TRUE)
 model1
 
 pred <- predict(model1, test_data_set, type = "class")
-result = data.frame(time = vector_time, acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed, anomaly = pred) 
+pred
+nrow(pred)
+
+Pred_Using_Bump_model <- predict(model_Bump, test_data_set, type = "class")
+nrow(Pred_Using_Bump_model)
+
+result = data.frame(time = vector_time, acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed, anomaly = pred)
+
+result_Using_Bump_model = data.frame(time = vector_time, acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed, anomaly = Pred_Using_Bump_model)
 
 head(result)
 summary(result)
+nrow(result)
+
+head(result_Using_Bump_model)
+summary(result_Using_Bump_model)
+nrow(result_Using_Bump_model)
 
 
-#library("jsonlite")
-#write_json(result, "Prediction\\HTC-Tida-Walpola-Matara.json")
+library("jsonlite")
+write_json(result, "Prediction\\HTC-Tida-Walpola-Matara.json")
 
 #head(pred)
 #summary(pred)
