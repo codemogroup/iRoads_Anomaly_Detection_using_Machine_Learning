@@ -1,18 +1,44 @@
 ---
-title: "R Notebook"
-output: html_notebook
+output:
+  pdf_document: default
+  html_document: default
 ---
+library("rjson")
+json_data <- fromJSON(file = "input\\json\\raw\\J5-Tida-Pinidiya1-Matara.json")
+vector_acceX <- numeric()
+vector_acceY <- numeric()
+vector_acceZ <- numeric()
+vector_acceX_raw <- numeric()
+vector_acceY_raw <- numeric()
+vector_acceZ_raw <- numeric()
+vector_time <- numeric()
+vector_gpsSpeed <- numeric()
+vector_lat <- numeric()
+vector_lon <- numeric()
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+for (item in json_data){
+  vector_acceX <- c(vector_acceX, item$acceX)
+  vector_acceY <- c(vector_acceY, item$acceY)
+  vector_acceZ <- c(vector_acceZ, item$acceZ)
+  vector_acceX_raw <- c(vector_acceX_raw, item$acceX_raw)
+  vector_acceY_raw <- c(vector_acceY_raw, item$acceY_raw)
+  vector_acceZ_raw <- c(vector_acceZ_raw, item$acceZ_raw)
+  vector_time <- c(vector_time, item$time)
+  vector_gpsSpeed <- c(vector_gpsSpeed, item$gpsSpeed)
+  vector_lat <- c(vector_lat, item$lat)
+  vector_lon <- c(vector_lon, item$lon)
+}
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+data_set = data.frame(time = vector_time, acceY = vector_acceY_raw, acceX = vector_acceX_raw, acceZ = vector_acceZ_raw, speed = vector_gpsSpeed)
 
-```{r}
-plot(cars)
-```
+library(plotly)
+p <- plot_ly(data_set, x = ~time, y = ~acceY, type = 'scatter', mode = 'lines')
+p
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+p <- plot_ly(data_set, x = ~time, y = ~acceY, name = 'Y', type = 'scatter', mode = 'lines') %>%
+  add_trace(y = ~acceX, name = 'X', mode = 'lines') %>%
+  add_trace(y = ~acceZ, name = 'Z', mode = 'lines')
+  
+p
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
