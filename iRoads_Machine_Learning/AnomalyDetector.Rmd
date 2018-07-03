@@ -1,10 +1,13 @@
----
-output:
-  pdf_document: default
-  html_document: default
----
+
+
+```{r}
 library("rjson")
-json_data <- fromJSON(file = "input\\json\\raw\\J5-Tida-Pinidiya1-Matara.json")
+file <- "TrainData\\pothole_40kmph.json"
+json_data <- fromJSON(file = file)
+```
+
+
+
 vector_acceX <- numeric()
 vector_acceY <- numeric()
 vector_acceZ <- numeric()
@@ -15,6 +18,7 @@ vector_time <- numeric()
 vector_gpsSpeed <- numeric()
 vector_lat <- numeric()
 vector_lon <- numeric()
+vector_anomaly <-character()
 
 for (item in json_data){
   vector_acceX <- c(vector_acceX, item$acceX)
@@ -24,21 +28,85 @@ for (item in json_data){
   vector_acceY_raw <- c(vector_acceY_raw, item$acceY_raw)
   vector_acceZ_raw <- c(vector_acceZ_raw, item$acceZ_raw)
   vector_time <- c(vector_time, item$time)
+  vector_gpsSpeed <- c(vector_gpsSpeed, 10)
+  vector_lat <- c(vector_lat, item$lat)
+  vector_lon <- c(vector_lon, item$lon)
+  vector_anomaly <- c(vector_anomaly, item$anomaly)
+}
+
+data_set = data.frame(acceY = vector_acceY_raw, acceX = vector_acceX_raw, acceZ = vector_acceZ_raw, speed = vector_gpsSpeed, anomaly = vector_anomaly)
+
+head(data_set)
+summary(data_set)
+
+nrow(data_set)
+
+###############################################################
+
+json_data <- fromJSON(file = "TestData\\HTC-Tida-Walpola-Matara.json")
+vector_acceX <- numeric()
+vector_acceY <- numeric()
+vector_acceZ <- numeric()
+vector_acceX_raw <- numeric()
+vector_acceY_raw <- numeric()
+vector_acceZ_raw <- numeric()
+vector_time <- numeric()
+vector_gpsSpeed <- numeric()
+vector_lat <- numeric()
+vector_lon <- numeric()
+vector_anomaly <-character()
+
+for (item in json_data){
+  vector_acceX <- c(vector_acceX, as.numeric(item$acceX))#check whether input data in required time.
+  vector_acceY <- c(vector_acceY, as.numeric(item$acceY))
+  vector_acceZ <- c(vector_acceZ, as.numeric(item$acceZ))
+  vector_acceX_raw <- c(vector_acceX_raw, item$acceX_raw)
+  vector_acceY_raw <- c(vector_acceY_raw, item$acceY_raw)
+  vector_acceZ_raw <- c(vector_acceZ_raw, item$acceZ_raw)
+  vector_time <- c(vector_time, as.numeric(item$time))
   vector_gpsSpeed <- c(vector_gpsSpeed, item$gpsSpeed)
   vector_lat <- c(vector_lat, item$lat)
   vector_lon <- c(vector_lon, item$lon)
+  vector_anomaly <- c(vector_anomaly, item$anomaly)
 }
 
-data_set = data.frame(time = vector_time, acceY = vector_acceY_raw, acceX = vector_acceX_raw, acceZ = vector_acceZ_raw, speed = vector_gpsSpeed)
+test_data_set = data.frame(acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed)
 
-library(plotly)
-p <- plot_ly(data_set, x = ~time, y = ~acceY, type = 'scatter', mode = 'lines')
-p
+nrow(test_data_set)
+head(test_data_set)
+summary(test_data_set)
 
-p <- plot_ly(data_set, x = ~time, y = ~acceY, name = 'Y', type = 'scatter', mode = 'lines') %>%
-  add_trace(y = ~acceX, name = 'X', mode = 'lines') %>%
-  add_trace(y = ~acceZ, name = 'Z', mode = 'lines')
+head(data_set)
+summary(data_set)
+
+library(randomForest)
   
-p
+model1 <- randomForest(anomaly ~ ., data = data_set, importance = TRUE)
+model1
 
+pred <- predict(model1, test_data_set, type = "class")
+result = data.frame(time = vector_time, acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed, anomaly = pred) 
+
+head(result)
+summary(result)
+
+
+#library("jsonlite")
+#write_json(result, "Prediction\\HTC-Tida-Walpola-Matara.json")
+
+#head(pred)
+#summary(pred)
+
+
+
+#total_data_set <- merge(valid_data_set, predTrain)
+#total_data_set
+
+#summary(total_data_set)
+
+#model2 <- randomForest(anomaly ~ ., data = data_set, ntree = 500, mtry = 6, importance = TRUE)
+#model2
+
+#model3 <- randomForest(anomaly ~ ., data = data_set, ntree = 500, mtry = 2, importance = TRUE)
+#model3
 
