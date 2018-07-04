@@ -1,0 +1,87 @@
+#### note there is no use of putting moving average for this bump
+library("jsonlite")
+json_data <- read_json("TrainData\\bump.json")
+
+vector_acceX <- numeric()
+vector_acceY <- numeric()
+vector_acceZ <- numeric()
+vector_acceX_raw <- numeric()
+vector_acceY_raw <- numeric()
+vector_acceZ_raw <- numeric()
+vector_time <- numeric()
+vector_gpsSpeed <- numeric()
+vector_lat <- numeric()
+vector_lon <- numeric()
+vector_anomaly <-character()
+
+for (item in json_data){
+  vector_acceX <- c(vector_acceX, item$acceX)
+  vector_acceY <- c(vector_acceY, item$acceY)
+  vector_acceZ <- c(vector_acceZ, item$acceZ)
+  vector_acceX_raw <- c(vector_acceX_raw, item$acceX_raw)
+  vector_acceY_raw <- c(vector_acceY_raw, item$acceY_raw)
+  vector_acceZ_raw <- c(vector_acceZ_raw, item$acceZ_raw)
+  vector_time <- c(vector_time, item$time)
+  vector_gpsSpeed <- c(vector_gpsSpeed, 10)
+  vector_lat <- c(vector_lat, item$lat)
+  vector_lon <- c(vector_lon, item$lon)
+  vector_anomaly <- c(vector_anomaly, item$anomaly)
+}
+
+library("pracma")
+bump_movavg_acceY <- movavg(vector_acceY_raw, 100, type=c("s"))
+bump_movavg_acceX <- movavg(vector_acceX_raw, 100, type=c("s"))
+bump_movavg_acceZ <- movavg(vector_acceZ_raw, 100, type=c("s"))
+data_set_movavg_bump = data.frame(acceY = vector_acceY_raw, acceX = vector_acceX_raw, acceZ = vector_acceZ_raw, speed = vector_gpsSpeed, anomaly = vector_anomaly)
+summary(data_set_movavg_bump)
+
+model_Bump_movavg <- randomForest(anomaly ~ ., data = data_set_movavg_bump, importance = TRUE)
+model_Bump_movavg
+
+json_data <- read_json("TestData\\HTC-Tida-Walpola-Matara.json")
+vector_acceX <- numeric()
+vector_acceY <- numeric()
+vector_acceZ <- numeric()
+vector_acceX_raw <- numeric()
+vector_acceY_raw <- numeric()
+vector_acceZ_raw <- numeric()
+vector_time <- numeric()
+vector_gpsSpeed <- numeric()
+vector_lat <- numeric()
+vector_lon <- numeric()
+vector_anomaly <-character()
+
+for (item in json_data){
+  vector_acceX <- c(vector_acceX, as.numeric(item$acceX))#check whether input data in required time.
+  vector_acceY <- c(vector_acceY, as.numeric(item$acceY))
+  vector_acceZ <- c(vector_acceZ, as.numeric(item$acceZ))
+  vector_acceX_raw <- c(vector_acceX_raw, item$acceX_raw)
+  vector_acceY_raw <- c(vector_acceY_raw, item$acceY_raw)
+  vector_acceZ_raw <- c(vector_acceZ_raw, item$acceZ_raw)
+  vector_time <- c(vector_time, as.numeric(item$time))
+  vector_gpsSpeed <- c(vector_gpsSpeed, item$gpsSpeed)
+  vector_lat <- c(vector_lat, item$lat)
+  vector_lon <- c(vector_lon, item$lon)
+  vector_anomaly <- c(vector_anomaly, item$anomaly)
+}
+
+movavg_acceY <- movavg(vector_acceY, 100, type=c("s"))
+movavg_acceX <- movavg(vector_acceX, 100, type=c("s"))
+movavg_acceZ <- movavg(vector_acceZ, 100, type=c("s"))
+
+#no use of putting a moving average since we use reoriented values
+test_data_set = data.frame(acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed)
+
+nrow(test_data_set)
+head(test_data_set)
+summary(test_data_set)
+
+Pred_Using_model_Bump_movavg<- predict(model_Bump_movavg, test_data_set, type = "class")
+
+result_Using_model_Bump_movavg = data.frame(time = vector_time, acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed, anomaly = Pred_Using_model_Bump_movavg)
+
+head(result_Using_model_Bump_movavg)
+summary(result_Using_model_Bump_movavg)
+nrow(result_Using_model_Bump_movavg)
+
+write_json(result, "Prediction\\HTC-Tida-Walpola-Matara-trained-only-for-bumps.json")
