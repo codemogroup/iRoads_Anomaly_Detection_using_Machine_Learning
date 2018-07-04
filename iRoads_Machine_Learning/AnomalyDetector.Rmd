@@ -30,8 +30,6 @@ for (item in json_data){
 library(randomForest)
 data_set_bump = data.frame(acceY = vector_acceY_raw, acceX = vector_acceX_raw, acceZ = vector_acceZ_raw, speed = vector_gpsSpeed, anomaly = vector_anomaly)  
 summary(data_set_bump)
-model_Bump <- randomForest(anomaly ~ ., data = data_set_bump, importance = TRUE)
-model_Bump
 ```{r}
 
 library(plotly)
@@ -39,6 +37,27 @@ theme_set(theme_classic())
 p <- plot_ly(data_set_bump, x = ~time, y = ~acceY, type = "area")
 p
 ```
+model_Bump <- randomForest(anomaly ~ ., data = data_set_bump, importance = TRUE)
+model_Bump
+
+
+library("pracma")
+bump_movavg_acceY <- movavg(vector_acceY_raw, 100, type=c("s"))
+bump_movavg_acceX <- movavg(vector_acceX_raw, 100, type=c("s"))
+bump_movavg_acceZ <- movavg(vector_acceZ_raw, 100, type=c("s"))
+data_set_movavg_bump = data.frame(acceY = bump_movavg_acceY, acceX = bump_movavg_acceX, acceZ = bump_movavg_acceZ, speed = vector_gpsSpeed, anomaly = vector_anomaly)
+summary(data_set_movavg_bump)
+```{r}
+
+library(plotly)
+theme_set(theme_classic())
+p <- plot_ly(data_set_movavg_bump, x = ~time, y = ~acceY, type = "area")
+p
+```
+model_Bump_movavg <- randomForest(anomaly ~ ., data = data_set_movavg_bump, importance = TRUE)
+model_Bump_movavg
+
+
 
 
 ```{r}
@@ -157,9 +176,14 @@ nrow(pred)
 Pred_Using_Bump_model <- predict(model_Bump, test_data_set, type = "class")
 nrow(Pred_Using_Bump_model)
 
+Pred_Using_model_Bump_movavg<- predict(model_Bump_movavg, test_data_set, type = "class")
+nrow(Pred_Using_model_Bump_movavg)
+
 result = data.frame(time = vector_time, acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed, anomaly = pred)
 
 result_Using_Bump_model = data.frame(time = vector_time, acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed, anomaly = Pred_Using_Bump_model)
+
+result_Using_model_Bump_movavg = data.frame(time = vector_time, acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed, anomaly = Pred_Using_model_Bump_movavg)
 
 head(result)
 summary(result)
@@ -168,6 +192,10 @@ nrow(result)
 head(result_Using_Bump_model)
 summary(result_Using_Bump_model)
 nrow(result_Using_Bump_model)
+
+head(result_Using_model_Bump_movavg)
+summary(result_Using_model_Bump_movavg)
+nrow(result_Using_model_Bump_movavg)
 
 
 library("jsonlite")
