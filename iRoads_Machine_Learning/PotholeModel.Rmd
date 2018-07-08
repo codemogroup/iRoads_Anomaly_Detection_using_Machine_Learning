@@ -1,0 +1,99 @@
+library("jsonlite")
+library(plotly)
+library("pracma")
+library(randomForest)
+json_data <- read_json("TrainData\\j7thalala2leftsidepothole2wheel.json")
+
+vector_index <- numeric()
+vector_acceX <- numeric()
+vector_acceY <- numeric()
+vector_acceZ <- numeric()
+vector_acceX_raw <- numeric()
+vector_acceY_raw <- numeric()
+vector_acceZ_raw <- numeric()
+vector_time <- numeric()
+vector_gpsSpeed <- numeric()
+vector_lat <- numeric()
+vector_lon <- numeric()
+vector_anomaly <-character()
+i= 0
+for (item in json_data){
+  vector_index <- c(vector_index, i)
+  vector_acceX <- c(vector_acceX, item$acceX)
+  vector_acceY <- c(vector_acceY, item$acceY)
+  vector_acceZ <- c(vector_acceZ, item$acceZ)
+  vector_acceX_raw <- c(vector_acceX_raw, item$acceX_raw)
+  vector_acceY_raw <- c(vector_acceY_raw, item$acceY_raw)
+  vector_acceZ_raw <- c(vector_acceZ_raw, item$acceZ_raw)
+  vector_time <- c(vector_time, item$time)
+  vector_gpsSpeed <- c(vector_gpsSpeed, item$gpsSpeed)
+  vector_lat <- c(vector_lat, item$lat)
+  vector_lon <- c(vector_lon, item$lon)
+  vector_anomaly <- c(vector_anomaly, item$anomaly)
+  i= i+1
+}
+
+json_data <- read_json("TrainData\\j7thalala7leftsidepothole2wheel.json")
+
+for (item in json_data){
+  vector_index <- c(vector_index, i)
+  vector_acceX <- c(vector_acceX, item$acceX)
+  vector_acceY <- c(vector_acceY, item$acceY)
+  vector_acceZ <- c(vector_acceZ, item$acceZ)
+  vector_acceX_raw <- c(vector_acceX_raw, item$acceX_raw)
+  vector_acceY_raw <- c(vector_acceY_raw, item$acceY_raw)
+  vector_acceZ_raw <- c(vector_acceZ_raw, item$acceZ_raw)
+  vector_time <- c(vector_time, item$time)
+  vector_gpsSpeed <- c(vector_gpsSpeed, item$gpsSpeed)
+  vector_lat <- c(vector_lat, item$lat)
+  vector_lon <- c(vector_lon, item$lon)
+  vector_anomaly <- c(vector_anomaly, item$anomaly)
+  i= i+1
+}
+movavg_acceY <- movavg(vector_acceY_raw, 5, type=c("s"))
+data_set = data.frame(acceY = movavg_acceY, acceX = vector_acceX_raw, speed = vector_gpsSpeed, anomaly = vector_anomaly)
+data_set_1 = data.frame(acceY = movavg_acceY, acceX = vector_acceX_raw, acceZ = vector_acceZ_raw, speed = vector_gpsSpeed, anomaly = vector_anomaly, time = vector_index)
+summary(data_set)
+
+pothole_model <- randomForest(anomaly ~ ., data = data_set, importance = TRUE)
+pothole_model
+
+json_data <- read_json("TestData\\HTC-Tida-Walpola-Matara.json")
+vector_acceX <- numeric()
+vector_acceY <- numeric()
+vector_acceZ <- numeric()
+vector_acceX_raw <- numeric()
+vector_acceY_raw <- numeric()
+vector_acceZ_raw <- numeric()
+vector_time <- numeric()
+vector_gpsSpeed <- numeric()
+vector_lat <- numeric()
+vector_lon <- numeric()
+vector_anomaly <-character()
+
+for (item in json_data){
+  vector_acceX <- c(vector_acceX, as.numeric(item$acceX))#check whether input data in required type.
+  vector_acceY <- c(vector_acceY, as.numeric(item$acceY))
+  vector_acceZ <- c(vector_acceZ, as.numeric(item$acceZ))
+  vector_acceX_raw <- c(vector_acceX_raw, item$acceX_raw)
+  vector_acceY_raw <- c(vector_acceY_raw, item$acceY_raw)
+  vector_acceZ_raw <- c(vector_acceZ_raw, item$acceZ_raw)
+  vector_time <- c(vector_time, as.numeric(item$time))
+  vector_gpsSpeed <- c(vector_gpsSpeed, item$gpsSpeed)
+  vector_lat <- c(vector_lat, item$lat)
+  vector_lon <- c(vector_lon, item$lon)
+  vector_anomaly <- c(vector_anomaly, item$anomaly)
+}
+
+test_data_set = data.frame(acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed)
+
+summary(test_data_set)
+
+pred <- predict(pothole_model, test_data_set, type = "class")
+result = data.frame(time = vector_time, acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed, anomaly = pred)
+summary(result)
+```{r}
+p <- plot_ly(data_set_1, x = ~time, y = ~acceY, type = "area")
+p
+```
+
