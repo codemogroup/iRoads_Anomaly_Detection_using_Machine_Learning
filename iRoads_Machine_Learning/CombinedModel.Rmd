@@ -304,7 +304,7 @@ summary(data_set)
 combined_model <- randomForest(anomaly ~ ., data = data_set, importance = TRUE)
 combined_model
 
-json_data <- read_json("TestData\\j7thalallarandom2.json")
+json_data <- read_json("TestData\\j7Uduwila2.json")
 vector_acceX <- numeric()
 vector_acceY <- numeric()
 vector_acceZ <- numeric()
@@ -339,7 +339,7 @@ pred <- predict(combined_model, test_data_set, type = "class")
 result = data.frame(time = vector_time, acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed, anomaly = pred)
 summary(result)
 
-write_json(result, "Prediction\\j7thalallarandom2CombinedModel.json")
+write_json(result, "Prediction\\j7Uduwila2CombinedModel.json")
 ```{r}
 p <- plot_ly(data_set_1, x = ~time, y = ~acceY, type = "area")
 p
