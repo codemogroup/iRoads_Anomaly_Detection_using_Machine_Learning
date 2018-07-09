@@ -111,7 +111,7 @@ summary(data_set)
 bump_model <- randomForest(anomaly ~ ., data = data_set, importance = TRUE)
 bump_model
 
-json_data <- read_json("TestData\\HTC-Tida-Walpola-Matara.json")
+json_data <- read_json("TestData\\j7thalallarandom2.json")
 vector_acceX <- numeric()
 vector_acceY <- numeric()
 vector_acceZ <- numeric()
