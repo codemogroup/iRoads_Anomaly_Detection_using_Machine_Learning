@@ -336,7 +336,7 @@ test_data_set = data.frame(acceY = vector_acceY, acceX = vector_acceX, acceZ = v
 summary(test_data_set)
 
 pred <- predict(combined_model, test_data_set, type = "class")
-result = data.frame(time = vector_time, acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed, anomaly = pred)
+result = data.frame(time = vector_time, acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed, anomaly = pred, lat = vector_lat, lon = vector_lon)
 summary(result)
 
 write_json(result, "Prediction\\j7Uduwila2CombinedModel.json")
