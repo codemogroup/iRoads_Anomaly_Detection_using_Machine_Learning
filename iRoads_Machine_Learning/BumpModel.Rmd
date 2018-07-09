@@ -128,7 +128,7 @@ summary(data_set)
 bump_model <- randomForest(anomaly ~ ., data = data_set, importance = TRUE)
 bump_model
 
-json_data <- read_json("TestData\\j7Uduwila1.json")
+json_data <- read_json("TestData\\j7Uduwila2.json")
 vector_acceX <- numeric()
 vector_acceY <- numeric()
 vector_acceZ <- numeric()
@@ -163,7 +163,7 @@ pred <- predict(bump_model, test_data_set, type = "class")
 result = data.frame(time = vector_time, acceY = vector_acceY, acceX = vector_acceX, acceZ = vector_acceZ, speed = vector_gpsSpeed, anomaly = pred)
 summary(result)
 
-write_json(result, "Prediction\\j7Uduwila1BumpModel.json")
+write_json(result, "Prediction\\j7Uduwila2BumpModel.json")
 ```{r}
 p <- plot_ly(data_set_1, x = ~time, y = ~acceY, type = "area")
 p
