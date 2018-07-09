@@ -1,5 +1,6 @@
 #### note there is no use of putting moving average for this bump
 library("jsonlite")
+library(randomForest)
 json_data <- read_json("TrainData\\bump.json")
 
 vector_acceX <- numeric()
