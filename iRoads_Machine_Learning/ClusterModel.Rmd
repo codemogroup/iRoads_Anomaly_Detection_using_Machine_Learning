@@ -1,0 +1,55 @@
+library("fpc")
+library("jsonlite")
+library(plotly)
+library("pracma")
+library(randomForest)
+
+
+json_data <- read_json("ClassifiedData\\j7Uduwila1PotholeModel.json")
+
+vector_index <- numeric()
+vector_acceX <- numeric()
+vector_acceY <- numeric()
+vector_acceZ <- numeric()
+vector_acceX_raw <- numeric()
+vector_acceY_raw <- numeric()
+vector_acceZ_raw <- numeric()
+vector_time <- numeric()
+vector_gpsSpeed <- numeric()
+vector_lat <- numeric()
+vector_lon <- numeric()
+vector_anomaly <-character()
+i= 0
+for (item in json_data){
+  vector_index <- c(vector_index, i)
+  vector_acceX <- c(vector_acceX, item$acceX)
+  vector_acceY <- c(vector_acceY, item$acceY)
+  vector_acceZ <- c(vector_acceZ, item$acceZ)
+  vector_acceX_raw <- c(vector_acceX_raw, item$acceX_raw)
+  vector_acceY_raw <- c(vector_acceY_raw, item$acceY_raw)
+  vector_acceZ_raw <- c(vector_acceZ_raw, item$acceZ_raw)
+  vector_time <- c(vector_time, item$time)
+  vector_gpsSpeed <- c(vector_gpsSpeed, item$gpsSpeed)
+  vector_lat <- c(vector_lat, item$lat)
+  vector_lon <- c(vector_lon, item$lon)
+  vector_anomaly <- c(vector_anomaly, item$anomaly)
+  i= i+1
+}
+
+data_set = data.frame(lat = vector_lat, lon = vector_lon)
+summary(data_set)
+nrow(data_set)
+head(data_set)
+
+db <- fpc::dbscan(data_set, eps = 0.005, MinPts = 2)
+db
+db$cluster
+db$isseed
+db$eps
+db$MinPts
+
+plot(db, data_set, main = "DBSCAN", frame = FALSE)
+
+result = data.frame( anomaly = vector_anomaly, lat = vector_lat, lon = vector_lon, cluster = db$cluster, seed = db$isseed)
+summary(result)
+head(result)
